@@ -1,7 +1,6 @@
 HELP.md
 .gradle
 build/
-!gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
 
@@ -35,17 +34,16 @@ out/
 
 ### VS Code ###
 .vscode/
-### FreelancerHub extras ###
 
-# Maven compiled output - never upload the JAR/target folder
+### FreelancerHub extras ###
 target/
 *.jar
 
-# Environment and secrets - NEVER upload these
+# MUST be AFTER *.jar so this negation wins
+!gradle/wrapper/gradle-wrapper.jar
+
 .env
 *.env
 application-prod.properties
-
-# OS files
 .DS_Store
 Thumbs.db
