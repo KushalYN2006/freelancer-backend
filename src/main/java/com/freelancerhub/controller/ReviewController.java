@@ -38,6 +38,16 @@ public class ReviewController {
     private ProjectRepository projectRepository;
 
     // ── POST /api/reviews ─────────────────────────────────────────────────────
+    @GetMapping("/all")
+    public ResponseEntity<?> getAllReviews() {
+        try {
+            return ResponseEntity.ok(reviewRepository.findAll());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("error", "Failed to fetch reviews: " + e.getMessage()));
+        }
+    }
+
     @PostMapping
     public ResponseEntity<?> postReview(@RequestBody Map<String, Object> body) {
         try {

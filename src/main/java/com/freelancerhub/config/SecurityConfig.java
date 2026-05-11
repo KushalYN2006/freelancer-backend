@@ -23,6 +23,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**").permitAll()   // public
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/projects/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/reviews/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/projects").permitAll()
                 .anyRequest().authenticated()                  // rest need JWT
             );
