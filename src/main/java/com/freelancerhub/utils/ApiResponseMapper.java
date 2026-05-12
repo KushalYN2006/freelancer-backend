@@ -2,6 +2,7 @@ package com.freelancerhub.utils;
 
 import com.freelancerhub.model.Bid;
 import com.freelancerhub.model.Contract;
+import com.freelancerhub.model.Message;
 import com.freelancerhub.model.Project;
 import com.freelancerhub.model.User;
 
@@ -48,6 +49,8 @@ public final class ApiResponseMapper {
         response.put("bidId", bid.getBidId());
         response.put("projectId", project.getProjectId());
         response.put("projectTitle", project.getTitle());
+        response.put("budget", project.getBudget());
+        response.put("deadline", project.getDeadline());
         response.put("clientId", project.getClient().getUserId());
         response.put("clientName", project.getClient().getName());
         response.put("freelancerId", freelancer.getUserId());
@@ -66,6 +69,8 @@ public final class ApiResponseMapper {
         response.put("contractId", contract.getContractId());
         response.put("projectId", project.getProjectId());
         response.put("projectTitle", project.getTitle());
+        response.put("budget", project.getBudget());
+        response.put("deadline", project.getDeadline());
         response.put("clientId", project.getClient().getUserId());
         response.put("clientName", project.getClient().getName());
         response.put("freelancerId", freelancer.getUserId());
@@ -73,6 +78,16 @@ public final class ApiResponseMapper {
         response.put("startDate", contract.getStartDate());
         response.put("endDate", contract.getEndDate());
         response.put("status", contract.getStatus());
+        return response;
+    }
+
+    public static Map<String, Object> messageSummary(Message message) {
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("messageId", message.getMessageId());
+        response.put("sender", userSummary(message.getSender()));
+        response.put("receiver", userSummary(message.getReceiver()));
+        response.put("message", message.getMessage());
+        response.put("timestamp", message.getTimestamp());
         return response;
     }
 }

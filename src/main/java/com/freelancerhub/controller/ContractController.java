@@ -1,9 +1,11 @@
 package com.freelancerhub.controller;
 
 import com.freelancerhub.model.Contract;
+import com.freelancerhub.model.Bid;
 import com.freelancerhub.model.Notification;
 import com.freelancerhub.model.Project;
 import com.freelancerhub.model.User;
+import com.freelancerhub.repository.BidRepository;
 import com.freelancerhub.repository.ContractRepository;
 import com.freelancerhub.repository.ProjectRepository;
 import com.freelancerhub.repository.UserRepository;
@@ -34,6 +36,9 @@ public class ContractController {
 
     @Autowired
     private ContractRepository contractRepository;
+
+    @Autowired
+    private BidRepository bidRepository;
 
     @Autowired
     private ProjectRepository projectRepository;
@@ -110,6 +115,7 @@ public class ContractController {
     @GetMapping("/freelancer/{id}")
     public ResponseEntity<?> getFreelancerContracts(@PathVariable Integer id) {
         try {
+            createMissingContracts(bidRepository.findByFreelancerUserIdAndStatus(id, Bid.BidStatus.accepted));
             List<Contract> contracts = contractRepository.findByFreelancerUserId(id);
             return ResponseEntity.ok(contracts.stream().map(ApiResponseMapper::contractSummary).toList());
         } catch (Exception e) {
@@ -122,6 +128,7 @@ public class ContractController {
     @GetMapping("/client/{id}")
     public ResponseEntity<?> getClientContracts(@PathVariable Integer id) {
         try {
+            createMissingContracts(bidRepository.findByProjectClientUserIdAndStatus(id, Bid.BidStatus.accepted));
             List<Contract> contracts = contractRepository.findByProjectClientUserId(id);
             return ResponseEntity.ok(contracts.stream().map(ApiResponseMapper::contractSummary).toList());
         } catch (Exception e) {
@@ -156,6 +163,25 @@ public class ContractController {
             return ResponseEntity.ok(Map.of("message", "Contract marked as completed"));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    private void createMissingContracts(List<Bid> acceptedBids) {
+        for (Bid bid : acceptedBids) {
+            Project project = bid.getProject();
+            User freelancer = bid.getFreelancer();
+            if (contractRepository.existsByProjectProjectIdAndFreelancerUserId(
+                    project.getProjectId(), freelancer.getUserId())) {
+                continue;
+            }
+
+            Contract contract = new Contract();
+            contract.setProject(project);
+            contract.setFreelancer(freelancer);
+            contract.setStartDate(LocalDate.now());
+            contract.setEndDate(LocalDate.now().plusMonths(1));
+            contract.setStatus(Contract.ContractStatus.active);
+            contractRepository.save(contract);
         }
     }
 }

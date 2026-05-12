@@ -4,6 +4,7 @@ import com.freelancerhub.model.Message;
 import com.freelancerhub.model.User;
 import com.freelancerhub.repository.MessageRepository;
 import com.freelancerhub.repository.UserRepository;
+import com.freelancerhub.utils.ApiResponseMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -107,7 +108,7 @@ public class MessageController {
             // Fetch all messages between these two users, sorted by timestamp ASC
             List<Message> conversation = messageRepository.findConversation(senderId, receiverId);
 
-            return ResponseEntity.ok(conversation);
+            return ResponseEntity.ok(conversation.stream().map(ApiResponseMapper::messageSummary).toList());
 
         } catch (Exception e) {
             return ResponseEntity.internalServerError()
@@ -129,7 +130,11 @@ public class MessageController {
             }
 
             List<Object> partners = messageRepository.findConversationPartners(userId);
-            return ResponseEntity.ok(partners);
+            return ResponseEntity.ok(partners.stream()
+                    .filter(User.class::isInstance)
+                    .map(User.class::cast)
+                    .map(ApiResponseMapper::userSummary)
+                    .toList());
 
         } catch (Exception e) {
             return ResponseEntity.internalServerError()

@@ -1,10 +1,12 @@
 package com.freelancerhub.controller;
 
 import com.freelancerhub.model.Bid;
+import com.freelancerhub.model.Contract;
 import com.freelancerhub.model.Notification;
 import com.freelancerhub.model.Project;
 import com.freelancerhub.model.User;
 import com.freelancerhub.repository.BidRepository;
+import com.freelancerhub.repository.ContractRepository;
 import com.freelancerhub.repository.ProjectRepository;
 import com.freelancerhub.repository.UserRepository;
 import com.freelancerhub.service.NotificationService;
@@ -13,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -38,6 +41,9 @@ public class BidController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private ContractRepository contractRepository;
 
     @Autowired
     private NotificationService notificationService;
@@ -234,6 +240,25 @@ public class BidController {
                 // Move project status to in_progress
                 project.setStatus(Project.Status.in_progress);
                 projectRepository.save(project);
+
+                if (!contractRepository.existsByProjectProjectIdAndFreelancerUserId(projectId, bid.getFreelancer().getUserId())) {
+                    Contract contract = new Contract();
+                    contract.setProject(project);
+                    contract.setFreelancer(bid.getFreelancer());
+                    contract.setStartDate(LocalDate.now());
+                    contract.setEndDate(LocalDate.now().plusMonths(1));
+                    contract.setStatus(Contract.ContractStatus.active);
+                    contractRepository.save(contract);
+
+                    notificationService.create(
+                            project.getClient(),
+                            bid.getFreelancer(),
+                            Notification.NotificationType.contract_created,
+                            "Contract created",
+                            "A contract with " + bid.getFreelancer().getName() + " was created for " + project.getTitle(),
+                            "contracts.html"
+                    );
+                }
             }
 
             return ResponseEntity.ok(Map.of(
