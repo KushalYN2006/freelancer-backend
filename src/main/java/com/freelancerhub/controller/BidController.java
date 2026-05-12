@@ -1,11 +1,13 @@
 package com.freelancerhub.controller;
 
 import com.freelancerhub.model.Bid;
+import com.freelancerhub.model.Notification;
 import com.freelancerhub.model.Project;
 import com.freelancerhub.model.User;
 import com.freelancerhub.repository.BidRepository;
 import com.freelancerhub.repository.ProjectRepository;
 import com.freelancerhub.repository.UserRepository;
+import com.freelancerhub.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -35,6 +37,9 @@ public class BidController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private NotificationService notificationService;
 
     // ── POST /api/bids ────────────────────────────────────────────────────────
     /**
@@ -98,6 +103,15 @@ public class BidController {
             bid.setStatus(Bid.BidStatus.pending);   // always starts as pending
 
             Bid savedBid = bidRepository.save(bid); // INSERT INTO Bids ...
+
+            notificationService.create(
+                    project.getClient(),
+                    freelancer,
+                    Notification.NotificationType.bid_placed,
+                    "New bid received",
+                    freelancer.getName() + " placed a $" + bidAmount + " bid on " + project.getTitle(),
+                    "my-projects.html"
+            );
 
             return ResponseEntity.ok(Map.of(
                     "message", "Bid placed successfully",
@@ -182,6 +196,19 @@ public class BidController {
             bid.setStatus(newStatus);
             bidRepository.save(bid);
 
+            Project project = bid.getProject();
+            String resultWord = newStatus == Bid.BidStatus.accepted ? "accepted" : "rejected";
+            notificationService.create(
+                    bid.getFreelancer(),
+                    project.getClient(),
+                    newStatus == Bid.BidStatus.accepted
+                            ? Notification.NotificationType.bid_accepted
+                            : Notification.NotificationType.bid_rejected,
+                    "Bid " + resultWord,
+                    "Your bid on " + project.getTitle() + " was " + resultWord,
+                    newStatus == Bid.BidStatus.accepted ? "contracts.html" : "my-bids.html"
+            );
+
             // If accepting this bid, reject all other bids on the same project
             if (newStatus == Bid.BidStatus.accepted) {
                 Integer projectId = bid.getProject().getProjectId();
@@ -192,11 +219,18 @@ public class BidController {
                     if (!otherBid.getBidId().equals(id)) {
                         otherBid.setStatus(Bid.BidStatus.rejected);
                         bidRepository.save(otherBid);
+                        notificationService.create(
+                                otherBid.getFreelancer(),
+                                project.getClient(),
+                                Notification.NotificationType.bid_rejected,
+                                "Bid rejected",
+                                "Your bid on " + project.getTitle() + " was rejected",
+                                "my-bids.html"
+                        );
                     }
                 }
 
                 // Move project status to in_progress
-                Project project = bid.getProject();
                 project.setStatus(Project.Status.in_progress);
                 projectRepository.save(project);
             }

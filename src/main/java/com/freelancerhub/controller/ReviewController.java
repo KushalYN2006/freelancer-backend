@@ -1,11 +1,13 @@
 package com.freelancerhub.controller;
 
+import com.freelancerhub.model.Notification;
 import com.freelancerhub.model.Project;
 import com.freelancerhub.model.Review;
 import com.freelancerhub.model.User;
 import com.freelancerhub.repository.ProjectRepository;
 import com.freelancerhub.repository.ReviewRepository;
 import com.freelancerhub.repository.UserRepository;
+import com.freelancerhub.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -36,6 +38,9 @@ public class ReviewController {
 
     @Autowired
     private ProjectRepository projectRepository;
+
+    @Autowired
+    private NotificationService notificationService;
 
     // ── POST /api/reviews ─────────────────────────────────────────────────────
     @GetMapping("/all")
@@ -81,6 +86,16 @@ public class ReviewController {
             review.setComment(comment);
 
             Review saved = reviewRepository.save(review);
+
+            notificationService.create(
+                    reviewee,
+                    reviewer,
+                    Notification.NotificationType.review_received,
+                    "New review received",
+                    reviewer.getName() + " left you a " + rating + "-star review for " + project.getTitle(),
+                    "reviews.html"
+            );
+
             return ResponseEntity.ok(Map.of("message", "Review posted", "reviewId", saved.getReviewId()));
 
         } catch (RuntimeException e) {

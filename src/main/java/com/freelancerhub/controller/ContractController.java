@@ -1,11 +1,13 @@
 package com.freelancerhub.controller;
 
 import com.freelancerhub.model.Contract;
+import com.freelancerhub.model.Notification;
 import com.freelancerhub.model.Project;
 import com.freelancerhub.model.User;
 import com.freelancerhub.repository.ContractRepository;
 import com.freelancerhub.repository.ProjectRepository;
 import com.freelancerhub.repository.UserRepository;
+import com.freelancerhub.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -37,6 +39,9 @@ public class ContractController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private NotificationService notificationService;
 
     // ── POST /api/contracts ───────────────────────────────────────────────────
     @PostMapping
@@ -75,6 +80,24 @@ public class ContractController {
             contract.setStatus(Contract.ContractStatus.active);
 
             Contract saved = contractRepository.save(contract);
+
+            notificationService.create(
+                    freelancer,
+                    project.getClient(),
+                    Notification.NotificationType.contract_created,
+                    "Contract created",
+                    "A contract was created for " + project.getTitle(),
+                    "contracts.html"
+            );
+            notificationService.create(
+                    project.getClient(),
+                    freelancer,
+                    Notification.NotificationType.contract_created,
+                    "Contract created",
+                    "A contract with " + freelancer.getName() + " was created for " + project.getTitle(),
+                    "contracts.html"
+            );
+
             return ResponseEntity.ok(Map.of("message", "Contract created", "contractId", saved.getContractId()));
 
         } catch (RuntimeException e) {
@@ -119,6 +142,15 @@ public class ContractController {
             Project project = contract.getProject();
             project.setStatus(Project.Status.completed);
             projectRepository.save(project);
+
+            notificationService.create(
+                    contract.getFreelancer(),
+                    project.getClient(),
+                    Notification.NotificationType.contract_completed,
+                    "Contract completed",
+                    "The contract for " + project.getTitle() + " was marked completed",
+                    "contracts.html"
+            );
 
             return ResponseEntity.ok(Map.of("message", "Contract marked as completed"));
         } catch (RuntimeException e) {
