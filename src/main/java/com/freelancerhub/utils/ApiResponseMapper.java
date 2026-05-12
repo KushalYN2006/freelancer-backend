@@ -2,6 +2,7 @@ package com.freelancerhub.utils;
 
 import com.freelancerhub.model.Bid;
 import com.freelancerhub.model.Contract;
+import com.freelancerhub.model.ConversationInvitation;
 import com.freelancerhub.model.Message;
 import com.freelancerhub.model.Project;
 import com.freelancerhub.model.User;
@@ -88,6 +89,17 @@ public final class ApiResponseMapper {
         response.put("receiver", userSummary(message.getReceiver()));
         response.put("message", message.getMessage());
         response.put("timestamp", message.getTimestamp());
+        return response;
+    }
+
+    public static Map<String, Object> invitationSummary(ConversationInvitation invitation) {
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("invitationId", invitation.getInvitationId());
+        response.put("sender", userSummary(invitation.getSender()));
+        response.put("receiver", userSummary(invitation.getReceiver()));
+        response.put("status", invitation.getStatus());
+        response.put("createdAt", invitation.getCreatedAt());
+        response.put("respondedAt", invitation.getRespondedAt());
         return response;
     }
 }

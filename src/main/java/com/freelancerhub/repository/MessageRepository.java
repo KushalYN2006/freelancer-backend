@@ -46,4 +46,6 @@ public interface MessageRepository extends JpaRepository<Message, Integer> {
         ORDER BY u.name ASC
     """)
     List<User> findConversationPartners(@Param("userId") Integer userId);
+
+    boolean existsBySenderUserIdAndReceiverUserId(Integer senderId, Integer receiverId);
 }

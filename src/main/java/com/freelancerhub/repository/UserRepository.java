@@ -2,6 +2,7 @@ package com.freelancerhub.repository;
 
 import com.freelancerhub.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.List;
 import java.util.Optional;
 
 // JpaRepository gives you free SQL: save(), findById(), findAll(), delete()
@@ -12,4 +13,6 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     // Check if email already exists
     boolean existsByEmail(String email);
+
+    List<User> findTop10ByNameContainingIgnoreCaseAndUserIdNot(String name, Integer userId);
 }

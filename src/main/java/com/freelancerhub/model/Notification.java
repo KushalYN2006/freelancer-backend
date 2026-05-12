@@ -45,6 +45,9 @@ public class Notification {
         contract_created,
         contract_completed,
         message_received,
+        conversation_invite,
+        conversation_invite_accepted,
+        conversation_invite_rejected,
         review_received
     }
 

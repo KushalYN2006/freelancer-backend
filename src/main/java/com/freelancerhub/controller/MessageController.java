@@ -1,8 +1,10 @@
 package com.freelancerhub.controller;
 
+import com.freelancerhub.model.ConversationInvitation;
 import com.freelancerhub.model.Message;
 import com.freelancerhub.model.Notification;
 import com.freelancerhub.model.User;
+import com.freelancerhub.repository.ConversationInvitationRepository;
 import com.freelancerhub.repository.MessageRepository;
 import com.freelancerhub.repository.UserRepository;
 import com.freelancerhub.service.NotificationService;
@@ -33,6 +35,9 @@ public class MessageController {
 
     @Autowired
     private MessageRepository messageRepository;
+
+    @Autowired
+    private ConversationInvitationRepository invitationRepository;
 
     @Autowired
     private UserRepository userRepository;
@@ -70,6 +75,18 @@ public class MessageController {
 
             User receiver = userRepository.findById(receiverId)
                     .orElseThrow(() -> new RuntimeException("Receiver not found: " + receiverId));
+
+            boolean existingConversation = messageRepository.existsBySenderUserIdAndReceiverUserId(senderId, receiverId)
+                    || messageRepository.existsBySenderUserIdAndReceiverUserId(receiverId, senderId);
+            boolean acceptedInvitation = invitationRepository.existsBySenderUserIdAndReceiverUserIdAndStatus(
+                    senderId, receiverId, ConversationInvitation.InvitationStatus.accepted)
+                    || invitationRepository.existsBySenderUserIdAndReceiverUserIdAndStatus(
+                    receiverId, senderId, ConversationInvitation.InvitationStatus.accepted);
+
+            if (!existingConversation && !acceptedInvitation) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("error", "Conversation invitation must be accepted before messaging"));
+            }
 
             // Build and save the message — INSERT INTO Messages ...
             Message message = new Message();

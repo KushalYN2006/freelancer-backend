@@ -30,6 +30,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/contracts", "/api/contracts/**").permitAll()
                 .requestMatchers("/api/messages", "/api/messages/**").permitAll()
                 .requestMatchers("/api/notifications", "/api/notifications/**").permitAll()
+                .requestMatchers("/api/users", "/api/users/**").permitAll()
+                .requestMatchers("/api/conversation-invitations", "/api/conversation-invitations/**").permitAll()
                 .anyRequest().authenticated()                  // rest need JWT
             );
         return http.build();
