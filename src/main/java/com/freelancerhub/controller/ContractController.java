@@ -42,8 +42,8 @@ public class ContractController {
     @PostMapping
     public ResponseEntity<?> createContract(@RequestBody Map<String, Object> body) {
         try {
-            Integer projectId    = (Integer) body.get("projectId");
-            Integer freelancerId = (Integer) body.get("freelancerId");
+            Integer projectId    = body.get("projectId") != null ? ((Number) body.get("projectId")).intValue() : null;
+            Integer freelancerId = body.get("freelancerId") != null ? ((Number) body.get("freelancerId")).intValue() : null;
             String  startDate    = (String)  body.get("startDate");
             String  endDate      = (String)  body.get("endDate");
 
@@ -56,6 +56,16 @@ public class ContractController {
                     .orElseThrow(() -> new RuntimeException("Project not found"));
             User freelancer     = userRepository.findById(freelancerId)
                     .orElseThrow(() -> new RuntimeException("Freelancer not found"));
+
+            if (freelancer.getRole() != User.Role.freelancer) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("error", "Contract must be assigned to a freelancer"));
+            }
+
+            if (contractRepository.existsByProjectProjectIdAndFreelancerUserId(projectId, freelancerId)) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("error", "Contract already exists for this accepted bid"));
+            }
 
             Contract contract = new Contract();
             contract.setProject(project);

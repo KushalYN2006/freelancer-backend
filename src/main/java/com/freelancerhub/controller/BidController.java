@@ -44,9 +44,9 @@ public class BidController {
     @PostMapping("/api/bids")
     public ResponseEntity<?> placeBid(@RequestBody Map<String, Object> body) {
         try {
-            Integer projectId    = (Integer) body.get("projectId");
-            Integer freelancerId = (Integer) body.get("freelancerId");
-            Double  bidAmount    = Double.valueOf(body.get("bidAmount").toString());
+            Integer projectId    = body.get("projectId") != null ? ((Number) body.get("projectId")).intValue() : null;
+            Integer freelancerId = body.get("freelancerId") != null ? ((Number) body.get("freelancerId")).intValue() : null;
+            Double  bidAmount    = body.get("bidAmount") != null ? Double.valueOf(body.get("bidAmount").toString()) : null;
             String  proposal     = (String)  body.get("proposal");
 
             // Validate required fields
@@ -59,9 +59,29 @@ public class BidController {
             Project project = projectRepository.findById(projectId)
                     .orElseThrow(() -> new RuntimeException("Project not found with id: " + projectId));
 
+            if (project.getStatus() != Project.Status.open) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("error", "This project is no longer open for bids"));
+            }
+
             // Check freelancer (user) exists
             User freelancer = userRepository.findById(freelancerId)
                     .orElseThrow(() -> new RuntimeException("Freelancer not found with id: " + freelancerId));
+
+            if (freelancer.getRole() != User.Role.freelancer) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("error", "Only freelancers can place bids"));
+            }
+
+            if (bidAmount <= 0) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("error", "Bid amount must be greater than 0"));
+            }
+
+            if (proposal.isBlank()) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("error", "Proposal is required"));
+            }
 
             // Prevent duplicate bids from the same freelancer on the same project
             if (bidRepository.existsByProjectProjectIdAndFreelancerUserId(projectId, freelancerId)) {

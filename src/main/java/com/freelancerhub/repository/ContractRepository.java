@@ -15,4 +15,6 @@ public interface ContractRepository extends JpaRepository<Contract, Integer> {
 
     // Get contracts by status for a freelancer
     List<Contract> findByFreelancerUserIdAndStatus(Integer freelancerId, Contract.ContractStatus status);
+
+    boolean existsByProjectProjectIdAndFreelancerUserId(Integer projectId, Integer freelancerId);
 }
