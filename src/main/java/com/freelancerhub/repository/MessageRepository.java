@@ -1,6 +1,7 @@
 package com.freelancerhub.repository;
 
 import com.freelancerhub.model.Message;
+import com.freelancerhub.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -35,13 +36,14 @@ public interface MessageRepository extends JpaRepository<Message, Integer> {
      * Used to populate the conversation sidebar (inbox list).
      */
     @Query("""
-        SELECT DISTINCT
-            CASE
-                WHEN m.sender.userId = :userId THEN m.receiver
-                ELSE m.sender
-            END
-        FROM Message m
-        WHERE m.sender.userId = :userId OR m.receiver.userId = :userId
+        SELECT DISTINCT u FROM User u
+        WHERE u.userId <> :userId
+          AND EXISTS (
+              SELECT 1 FROM Message m
+              WHERE (m.sender.userId = :userId AND m.receiver.userId = u.userId)
+                 OR (m.receiver.userId = :userId AND m.sender.userId = u.userId)
+          )
+        ORDER BY u.name ASC
     """)
-    List<Object> findConversationPartners(@Param("userId") Integer userId);
+    List<User> findConversationPartners(@Param("userId") Integer userId);
 }

@@ -1,14 +1,18 @@
 package com.freelancerhub.controller;
 
 import com.freelancerhub.model.Message;
+import com.freelancerhub.model.Notification;
 import com.freelancerhub.model.User;
 import com.freelancerhub.repository.MessageRepository;
 import com.freelancerhub.repository.UserRepository;
+import com.freelancerhub.service.NotificationService;
 import com.freelancerhub.utils.ApiResponseMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +36,9 @@ public class MessageController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private NotificationService notificationService;
 
     // ── POST /api/messages ────────────────────────────────────────────────────
     /**
@@ -72,6 +79,16 @@ public class MessageController {
             message.setTimestamp(LocalDateTime.now());
 
             Message saved = messageRepository.save(message);
+
+            notificationService.create(
+                    receiver,
+                    sender,
+                    Notification.NotificationType.message_received,
+                    "New message",
+                    sender.getName() + " sent you a message",
+                    "messages.html?to=" + sender.getUserId()
+                            + "&name=" + URLEncoder.encode(sender.getName(), StandardCharsets.UTF_8)
+            );
 
             return ResponseEntity.ok(Map.of(
                     "message",   "Message sent",
@@ -129,10 +146,8 @@ public class MessageController {
                         .body(Map.of("error", "User not found: " + userId));
             }
 
-            List<Object> partners = messageRepository.findConversationPartners(userId);
+            List<User> partners = messageRepository.findConversationPartners(userId);
             return ResponseEntity.ok(partners.stream()
-                    .filter(User.class::isInstance)
-                    .map(User.class::cast)
                     .map(ApiResponseMapper::userSummary)
                     .toList());
 

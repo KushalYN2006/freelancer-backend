@@ -44,6 +44,7 @@ public class Notification {
         bid_rejected,
         contract_created,
         contract_completed,
+        message_received,
         review_received
     }
 
