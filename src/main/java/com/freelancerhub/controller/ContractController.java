@@ -8,6 +8,7 @@ import com.freelancerhub.repository.ContractRepository;
 import com.freelancerhub.repository.ProjectRepository;
 import com.freelancerhub.repository.UserRepository;
 import com.freelancerhub.service.NotificationService;
+import com.freelancerhub.utils.ApiResponseMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -110,7 +111,7 @@ public class ContractController {
     public ResponseEntity<?> getFreelancerContracts(@PathVariable Integer id) {
         try {
             List<Contract> contracts = contractRepository.findByFreelancerUserId(id);
-            return ResponseEntity.ok(contracts);
+            return ResponseEntity.ok(contracts.stream().map(ApiResponseMapper::contractSummary).toList());
         } catch (Exception e) {
             return ResponseEntity.internalServerError()
                     .body(Map.of("error", "Failed to fetch contracts: " + e.getMessage()));
@@ -122,7 +123,7 @@ public class ContractController {
     public ResponseEntity<?> getClientContracts(@PathVariable Integer id) {
         try {
             List<Contract> contracts = contractRepository.findByProjectClientUserId(id);
-            return ResponseEntity.ok(contracts);
+            return ResponseEntity.ok(contracts.stream().map(ApiResponseMapper::contractSummary).toList());
         } catch (Exception e) {
             return ResponseEntity.internalServerError()
                     .body(Map.of("error", "Failed to fetch contracts: " + e.getMessage()));

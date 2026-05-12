@@ -22,6 +22,9 @@ public interface BidRepository extends JpaRepository<Bid, Integer> {
     // SQL equivalent: SELECT * FROM Bids WHERE freelancer_id = ?
     List<Bid> findByFreelancerUserId(Integer freelancerId);
 
+    // Get all bids received across projects owned by one client
+    List<Bid> findByProjectClientUserId(Integer clientId);
+
     // Check if a freelancer already bid on a project (prevent duplicate bids)
     boolean existsByProjectProjectIdAndFreelancerUserId(Integer projectId, Integer freelancerId);
 

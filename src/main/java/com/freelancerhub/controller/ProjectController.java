@@ -2,6 +2,7 @@ package com.freelancerhub.controller;
 
 import com.freelancerhub.model.Project;
 import com.freelancerhub.service.ProjectService;
+import com.freelancerhub.utils.ApiResponseMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,21 +26,31 @@ public class ProjectController {
 
     // GET /api/projects
     @GetMapping
-    public List<Project> getAllProjects() {
-        return projectService.getAllOpenProjects();
+    public List<Map<String, Object>> getAllProjects() {
+        return projectService.getAllOpenProjects()
+                .stream()
+                .map(ApiResponseMapper::projectSummary)
+                .toList();
     }
 
     // GET /api/projects/search?keyword=website
     @GetMapping("/search")
-    public List<Project> searchProjects(@RequestParam String keyword) {
-        return projectService.searchProjects(keyword);
+    public List<Map<String, Object>> searchProjects(@RequestParam String keyword) {
+        return projectService.searchProjects(keyword)
+                .stream()
+                .map(ApiResponseMapper::projectSummary)
+                .toList();
     }
 
     // GET /api/projects/client/{clientId}
     @GetMapping("/client/{clientId}")
     public ResponseEntity<?> getClientProjects(@PathVariable Integer clientId) {
         try {
-            return ResponseEntity.ok(projectService.getProjectsByClient(clientId));
+            List<Map<String, Object>> projects = projectService.getProjectsByClient(clientId)
+                    .stream()
+                    .map(ApiResponseMapper::projectSummary)
+                    .toList();
+            return ResponseEntity.ok(projects);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
@@ -49,7 +60,7 @@ public class ProjectController {
     @GetMapping("/{id}")
     public ResponseEntity<?> getProject(@PathVariable Integer id) {
         try {
-            return ResponseEntity.ok(projectService.getProjectById(id));
+            return ResponseEntity.ok(ApiResponseMapper.projectSummary(projectService.getProjectById(id)));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
@@ -91,7 +102,7 @@ public class ProjectController {
                                         ? Project.Status.valueOf(body.get("status").toString()) : null;
 
             Project updated = projectService.updateProject(id, title, description, budget, deadline, status);
-            return ResponseEntity.ok(updated);
+            return ResponseEntity.ok(ApiResponseMapper.projectSummary(updated));
 
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));

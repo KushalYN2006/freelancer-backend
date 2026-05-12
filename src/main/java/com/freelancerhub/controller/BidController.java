@@ -8,6 +8,7 @@ import com.freelancerhub.repository.BidRepository;
 import com.freelancerhub.repository.ProjectRepository;
 import com.freelancerhub.repository.UserRepository;
 import com.freelancerhub.service.NotificationService;
+import com.freelancerhub.utils.ApiResponseMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -137,7 +138,7 @@ public class BidController {
             }
 
             List<Bid> bids = bidRepository.findByProjectProjectId(id);
-            return ResponseEntity.ok(bids);
+            return ResponseEntity.ok(bids.stream().map(ApiResponseMapper::bidSummary).toList());
 
         } catch (Exception e) {
             return ResponseEntity.internalServerError()
@@ -153,7 +154,7 @@ public class BidController {
     public ResponseEntity<?> getFreelancerBids(@PathVariable Integer freelancerId) {
         try {
             List<Bid> bids = bidRepository.findByFreelancerUserId(freelancerId);
-            return ResponseEntity.ok(bids);
+            return ResponseEntity.ok(bids.stream().map(ApiResponseMapper::bidSummary).toList());
 
         } catch (Exception e) {
             return ResponseEntity.internalServerError()
