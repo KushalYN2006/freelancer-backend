@@ -52,11 +52,15 @@ public class FreelancerProfileController {
                         .body(Map.of("error", "Skills, experience, and portfolio link are required"));
             }
 
-            profile.setSkills(skills);
-            profile.setExperience(experience);
-            profile.setPortfolioLink(portfolioLink);
-
-            FreelancerProfile saved = freelancerProfileRepository.save(profile);
+            freelancerProfileRepository.upsertProfile(freelancerId, skills, experience, portfolioLink);
+            FreelancerProfile saved = freelancerProfileRepository.findById(freelancerId)
+                    .orElseGet(() -> {
+                        FreelancerProfile refreshed = emptyProfile(freelancer);
+                        refreshed.setSkills(skills);
+                        refreshed.setExperience(experience);
+                        refreshed.setPortfolioLink(portfolioLink);
+                        return refreshed;
+                    });
             return ResponseEntity.ok(profileResponse(saved, freelancer));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
