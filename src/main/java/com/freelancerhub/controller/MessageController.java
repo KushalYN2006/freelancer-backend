@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -163,8 +164,13 @@ public class MessageController {
                         .body(Map.of("error", "User not found: " + userId));
             }
 
-            List<User> partners = messageRepository.findConversationPartners(userId);
-            return ResponseEntity.ok(partners.stream()
+            Map<Integer, User> partners = new LinkedHashMap<>();
+            messageRepository.findConversationPartners(userId)
+                    .forEach(user -> partners.put(user.getUserId(), user));
+            invitationRepository.findAcceptedConversationPartners(userId)
+                    .forEach(user -> partners.put(user.getUserId(), user));
+
+            return ResponseEntity.ok(partners.values().stream()
                     .map(ApiResponseMapper::userSummary)
                     .toList());
 
