@@ -45,5 +45,6 @@ target/
 .env
 *.env
 application-prod.properties
+freelancer-profiles.local.json
 .DS_Store
 Thumbs.db

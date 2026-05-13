@@ -31,6 +31,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/messages", "/api/messages/**").permitAll()
                 .requestMatchers("/api/notifications", "/api/notifications/**").permitAll()
                 .requestMatchers("/api/users", "/api/users/**").permitAll()
+                .requestMatchers("/api/freelancer-profiles", "/api/freelancer-profiles/**").permitAll()
                 .requestMatchers("/api/conversation-invitations", "/api/conversation-invitations/**").permitAll()
                 .anyRequest().authenticated()                  // rest need JWT
             );
