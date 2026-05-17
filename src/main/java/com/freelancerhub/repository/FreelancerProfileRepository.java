@@ -12,15 +12,37 @@ public interface FreelancerProfileRepository extends JpaRepository<FreelancerPro
     @Modifying
     @Transactional
     @Query(value = """
-            INSERT INTO Freelancer_Profile (freelancer_id, skills, experience, portfolio_link)
-            VALUES (:freelancerId, :skills, :experience, :portfolioLink)
+            INSERT INTO freelancer_profile (freelancer_id, experience, portfolio_link)
+            VALUES (:freelancerId, :experience, :portfolioLink)
             ON DUPLICATE KEY UPDATE
-                skills = :skills,
                 experience = :experience,
                 portfolio_link = :portfolioLink
             """, nativeQuery = true)
     int upsertProfile(@Param("freelancerId") Integer freelancerId,
-                      @Param("skills") String skills,
                       @Param("experience") String experience,
                       @Param("portfolioLink") String portfolioLink);
+
+    @Query(value = """
+            SELECT skill
+            FROM freelancer_skills
+            WHERE freelancer_id = :freelancerId
+            """, nativeQuery = true)
+    java.util.List<String> findSkillsByFreelancerId(@Param("freelancerId") Integer freelancerId);
+
+    @Modifying
+    @Transactional
+    @Query(value = """
+            DELETE FROM freelancer_skills
+            WHERE freelancer_id = :freelancerId
+            """, nativeQuery = true)
+    int deleteSkillsByFreelancerId(@Param("freelancerId") Integer freelancerId);
+
+    @Modifying
+    @Transactional
+    @Query(value = """
+            INSERT INTO freelancer_skills (freelancer_id, skill)
+            VALUES (:freelancerId, :skill)
+            """, nativeQuery = true)
+    int insertSkill(@Param("freelancerId") Integer freelancerId,
+                    @Param("skill") String skill);
 }

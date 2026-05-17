@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
 @Entity
-@Table(name = "Freelancer_Profile")
+@Table(name = "freelancer_profile")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -20,9 +20,6 @@ public class FreelancerProfile {
     @MapsId
     @JoinColumn(name = "freelancer_id")
     private User user;
-
-    @Column(columnDefinition = "TEXT")
-    private String skills;
 
     @Column(columnDefinition = "TEXT")
     private String experience;
