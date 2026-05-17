@@ -48,7 +48,6 @@ public class Notification {
         conversation_invite,
         conversation_invite_accepted,
         conversation_invite_rejected,
-        payment_completed,
         review_received
     }
 

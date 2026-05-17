@@ -185,7 +185,7 @@ public class ContractController {
             notificationService.create(
                     project.getClient(),
                     contract.getFreelancer(),
-                    Notification.NotificationType.payment_completed,
+                    Notification.NotificationType.contract_completed,
                     "Payment completed",
                     contract.getFreelancer().getName() + " marked payment complete for " + project.getTitle(),
                     "contracts.html"
