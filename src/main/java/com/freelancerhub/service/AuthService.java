@@ -9,9 +9,12 @@ import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 @Service
 public class AuthService {
+
+    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
 
     @Autowired
     private UserRepository userRepository;   // ← talks to MySQL
@@ -24,6 +27,8 @@ public class AuthService {
 
     // REGISTER: Save user to MySQL
     public Map<String, Object> register(User user) {
+        validateEmail(user.getEmail());
+
         if (userRepository.existsByEmail(user.getEmail())) {
             throw new RuntimeException("Email already registered");
         }
@@ -39,6 +44,8 @@ public class AuthService {
 
     // LOGIN: Verify credentials, return JWT token
     public Map<String, Object> login(String email, String password) {
+        validateEmail(email);
+
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -54,5 +61,11 @@ public class AuthService {
         response.put("userId", user.getUserId());
         response.put("name", user.getName());
         return response;
+    }
+
+    private void validateEmail(String email) {
+        if (email == null || !EMAIL_PATTERN.matcher(email.trim()).matches()) {
+            throw new RuntimeException("Please enter a valid email address");
+        }
     }
 }
